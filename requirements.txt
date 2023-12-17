@@ -1,0 +1,9 @@
+PyQt5
+requests
+pygame
+python-dotenv
+numpy
+sounddevice
+scipy
+pydub
+scikit-learn
