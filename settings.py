@@ -112,8 +112,6 @@ class SettingsMenu(QWidget):
         self.setWindowTitle('Settings')
         self.setGeometry(300, 300, 320, 480)
 
-
-
     def change_model(self, index):
         self.model_label.setText(f'Model: {self.models[index][0]}')
 

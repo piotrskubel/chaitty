@@ -50,7 +50,6 @@ class TextSimilarity:
 
         return [lines[i].strip() for i in top_indices]
 
-
 def write_to_file(filepath, text):
     with open(filepath, 'a', encoding='utf-8') as f:
         f.write(text + '\n')

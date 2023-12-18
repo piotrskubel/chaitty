@@ -76,4 +76,4 @@ In the **Settings** menu you can change 3 options:
 - the **voice** used for playing the answers
 - the **duration of silence** in seconds, after which recording will stop
 
-The conversation history is in default stored in _context.txt_ file in the main directory. Context for the language model is created from the affirmative lines of the whole conversation. The algorithm calculates a similarity score for the each line and selects the ones, which best applies to the current user input.
+A conversation history is in default stored in the _context.txt_ file in the main directory. Context for the language model is created from the affirmative lines of the whole conversation. The algorithm calculates a similarity score for each line and selects the ones, which best apply to the current user input.

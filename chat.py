@@ -39,12 +39,13 @@ def initiate_chat(settings):
             {"role": "system", "content": f'''I am native English speaker.
             I do not mention who I am, unless the user prefers so.
             I try to answer to the user question and nothing else.
+            I do not use any introduction and avoid not necessary comments.
             After answering I encourage the user to further conversation.
-            I answer as concise as I can, preferably in one sentence. 
+            I answer as concisely as I can, preferably in one sentence. 
             ```Context: {context}'''},
             {"role": "user", "content": f"{user_input}"}
         ],
-        "max_tokens": 80
+        "max_tokens": 60
     }
 
     cloudflare_response = LanguageModel(
@@ -83,4 +84,3 @@ def initiate_chat(settings):
 
     os.remove(audio_answer)
     os.remove(audio_question)
-
