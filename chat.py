@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from utils import LanguageModel, TextSimilarity, write_to_file
+from utils import LanguageModel, TextSimilarity, write_to_file, countdown
 from record import record_audio
 from transcription import get_transcription
 from pygame import mixer, time
@@ -12,7 +12,7 @@ def check_env_vars(*args):
             raise Exception(f"Environment variable {var} is not set")
 
 def initiate_chat(settings):
-    # Check if environment variables are set
+   
     check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID')
 
     load_dotenv()
@@ -38,9 +38,10 @@ def initiate_chat(settings):
         "messages": [
             {"role": "system", "content": f'''I am native English speaker.
             I do not mention who I am, unless the user prefers so.
-            I try to answer to the user question and nothing else.
+            I try to reply to the user message and nothing else.
             I do not use any introduction and avoid not necessary comments.
-            After answering I encourage the user to further conversation.
+            After replying I encourage the user to further conversation.
+            I ask my question or refer to the information I have about the user.
             I answer as concisely as I can, preferably in one sentence. 
             ```Context: {context}'''},
             {"role": "user", "content": f"{user_input}"}
@@ -53,7 +54,26 @@ def initiate_chat(settings):
         ).get_response()
    
     assistant_answer = cloudflare_response.json()['result']['response']
+
+    ending_json =  {
+        "messages": [
+            {"role": "system", "content": f'''I classify messages
+             into the categories: 1. GOODBYE, 2. OTHER.
+             Example of goodbye: It was good to talk to you.
+             Example of other: Tell me more about you.
+             I must answer with exactly ONE of this words.'''},
+            {"role": "user", "content": f"{assistant_answer}"}
+        ],
+        "max_tokens": 20
+    }
    
+    ending_response = LanguageModel(
+        f'{CLOUDFLARE_ENDPOINT}{cloudflare_model}', CLOUDFLARE_HEADERS, ending_json
+        ).get_response()
+    
+    if "goodbye" in str(ending_response.json()['result']['response']).lower():
+        print('Chat will end soon')
+        settings["auto_continue"] = False
 
     write_to_file(CONTEXT_STORAGE, f'Assistant: {assistant_answer}')
     elevenlabs_json = {
@@ -66,13 +86,13 @@ def initiate_chat(settings):
     elevenlabs_response = LanguageModel(
         f'{ELEVENLABS_ENDPOINT}{elevenlabs_voice}', ELEVENLABS_HEADERS, elevenlabs_json
         ).get_response()
+    print(elevenlabs_response.json())
     audio_answer = 'answer.mp3'
     audio_question = 'question.mp3'
     with open(audio_answer, 'wb') as f:
         for chunk in elevenlabs_response.iter_content(chunk_size=ELEVENLABS_CHUNK):
             if chunk:
                 f.write(chunk)
-
 
     mixer.init()
     mixer.music.load(audio_answer)
@@ -84,3 +104,5 @@ def initiate_chat(settings):
 
     os.remove(audio_answer)
     os.remove(audio_question)
+    if settings["auto_continue"]:
+        countdown(3)

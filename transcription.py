@@ -17,5 +17,3 @@ def get_transcription():
     transcription = whisper_response.json()['result']['text']
     
     return transcription
-
-

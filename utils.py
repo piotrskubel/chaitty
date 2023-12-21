@@ -2,6 +2,7 @@ import requests
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import heapq
+import time
 
 class LanguageModel:
     def __init__(self, endpoint, headers, data):
@@ -17,7 +18,9 @@ class LanguageModel:
             response = requests.post(self.endpoint, headers=self.headers, data=self.data)
 
         if response.status_code != 200:
-            raise Exception(f"HTTP request failed with status code {response.status_code}")
+            raise Exception(f'''HTTP request failed with status code {response.status_code}.
+Responsible endpoint: {self.endpoint}
+{response.json()}''')
 
         return response
     
@@ -54,4 +57,7 @@ def write_to_file(filepath, text):
     with open(filepath, 'a', encoding='utf-8') as f:
         f.write(text + '\n')
 
-
+def countdown(n):
+    for i in range(n, 0, -1):
+        print(i)
+        time.sleep(1)

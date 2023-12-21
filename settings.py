@@ -56,7 +56,8 @@ class SettingsMenu(QWidget):
         default_settings = {
         "model": ("Llama 2 7B Chat (fp16)", "@cf/meta/llama-2-7b-chat-fp16"),
         "voice": ("Rachel", "21m00Tcm4TlvDq8ikWAM", ""),
-        "silence" : 2
+        "silence" : 2,
+        "auto_continue" : False,
         }
 
         if os.path.exists('settings.json'):
@@ -75,6 +76,7 @@ class SettingsMenu(QWidget):
         self.model_label = QLabel(f'Model: {self.settings["model"][0]}')
         self.voice_label = QLabel(f'Voice: {self.settings["voice"][0]}')
         self.silence_label = QLabel(f'Silence detection: {self.settings["silence"]} s')
+        self.auto_continue_label = QLabel(f'Auto-continue chat: {self.settings["auto_continue"]}')
 
         self.model_combo = QComboBox()
         self.model_combo.addItems([model[0] for model in self.models])
@@ -94,6 +96,13 @@ class SettingsMenu(QWidget):
         self.silence_combo.setCurrentIndex(int(self.settings["silence"]) - silence_lowest_value)
         self.silence_combo.currentIndexChanged.connect(self.change_silence_value)
 
+        self.auto_continue_combo = QComboBox()
+        self.auto_continue_combo.addItems(["True","False"])
+        auto_continue_setting = str(self.settings["auto_continue"])
+        index = self.auto_continue_combo.findText(auto_continue_setting)
+        self.auto_continue_combo.setCurrentIndex(index)
+        self.auto_continue_combo.currentIndexChanged.connect(self.change_auto_continue)
+
         save_button = QPushButton('Save Settings')
         back_button = QPushButton('Back to Main Menu')
 
@@ -106,6 +115,8 @@ class SettingsMenu(QWidget):
         vbox.addWidget(self.voice_combo)
         vbox.addWidget(self.silence_label)
         vbox.addWidget(self.silence_combo)
+        vbox.addWidget(self.auto_continue_label)
+        vbox.addWidget(self.auto_continue_combo)
         vbox.addWidget(save_button)
         vbox.addWidget(back_button)
 
@@ -124,10 +135,16 @@ class SettingsMenu(QWidget):
             f'Silence detection: {self.silence_combo.currentText()} s'
         )
 
+    def change_auto_continue(self):
+        self.auto_continue_label.setText(
+            f'Auto-continue chat: {self.auto_continue_combo.currentText()}'
+        )
+
     def save_settings(self):
         settings = {'model': self.models[self.model_combo.currentIndex()],
                     'voice': self.voices[self.voice_combo.currentIndex()],
-                    'silence': int(self.silence_combo.currentText()),}
+                    'silence': int(self.silence_combo.currentText()),
+                    'auto_continue': self.auto_continue_combo.currentText() == 'True',}
         with open('settings.json', 'w') as f:
             json.dump(settings, f)  # Save the settings
         

@@ -44,13 +44,18 @@ class MyApp(QWidget):
         self.hide()
         self.chat_button.setText('Continue chat')
         QApplication.processEvents()
-        try:
-            initiate_chat(self.settings)
-        except Exception as e:
-            print(e)
-            print(f"An error occurred, but you can continue chat")
-        finally:
-            self.show()
+        while True:
+            try:
+                initiate_chat(self.settings)
+            except Exception as e:
+                print(e)
+                print(f"An error occurred, but you can continue chat")
+                self.show()
+                break
+            if not self.settings.get('auto_continue', False):
+                self.show()
+                break
+
 
     def show_settings_menu(self):
         """Show the settings menu."""
@@ -67,8 +72,3 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MyApp()
     sys.exit(app.exec_())
-
-
-
-
-
