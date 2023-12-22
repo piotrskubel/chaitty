@@ -36,13 +36,15 @@ def initiate_chat(settings):
     context = TextSimilarity().prepare_context(CONTEXT_STORAGE, user_input)
     cloudflare_json = {
         "messages": [
-            {"role": "system", "content": f'''I am native English speaker.
-            I do not mention who I am, unless the user prefers so.
-            I try to reply to the user message and nothing else.
-            I do not use any introduction and avoid not necessary comments.
-            After replying I encourage the user to further conversation.
-            I ask my question or refer to the information I have about the user.
-            I answer as concisely as I can, preferably in one sentence. 
+            {"role": "system", "content": f'''
+                I am native English speaker.
+                I always try to reply to the user message and do nothing else.
+                I do not use any introduction and information about myself.
+                After replying I encourage the user to further conversation.
+                I ask my question or refer to the information I have about the user.
+                I MUST answer as concisely as I can, preferably in one sentence.
+                If I do not have personal preferences or feelings
+                I check what is statistically popular and I answer that I pefer or feel that. 
             ```Context: {context}'''},
             {"role": "user", "content": f"{user_input}"}
         ],
@@ -52,25 +54,27 @@ def initiate_chat(settings):
     cloudflare_response = LanguageModel(
         f'{CLOUDFLARE_ENDPOINT}{cloudflare_model}', CLOUDFLARE_HEADERS, cloudflare_json
         ).get_response()
-   
+
     assistant_answer = cloudflare_response.json()['result']['response']
 
     ending_json =  {
         "messages": [
-            {"role": "system", "content": f'''I classify messages
-             into the categories: 1. GOODBYE, 2. OTHER.
-             Example of goodbye: It was good to talk to you.
-             Example of other: Tell me more about you.
-             I must answer with exactly ONE of this words.'''},
-            {"role": "user", "content": f"{assistant_answer}"}
+            {"role": "system", "content": '''
+                I am instructed to answer with exactly ONE word.
+                I classify messages into the categories: 1. GOODBYE, 2. OTHER
+                I use GOODBYE only when I am certain that user intends to end the chat.
+                I use OTHER, when I think that ueser intends to continue the chat.
+                If I am not certain I answer OTHER.
+                I must answer with exactly ONE of this words.'''},
+            {"role": "user", "content": f"{user_input}"}
         ],
         "max_tokens": 20
     }
-   
+
     ending_response = LanguageModel(
-        f'{CLOUDFLARE_ENDPOINT}{cloudflare_model}', CLOUDFLARE_HEADERS, ending_json
+        f'{CLOUDFLARE_ENDPOINT}@cf/mistral/mistral-7b-instruct-v0.1', CLOUDFLARE_HEADERS, ending_json
         ).get_response()
-    
+    print(ending_response.json())
     if "goodbye" in str(ending_response.json()['result']['response']).lower():
         print('Chat will end soon')
         settings["auto_continue"] = False
@@ -86,7 +90,7 @@ def initiate_chat(settings):
     elevenlabs_response = LanguageModel(
         f'{ELEVENLABS_ENDPOINT}{elevenlabs_voice}', ELEVENLABS_HEADERS, elevenlabs_json
         ).get_response()
-    print(elevenlabs_response.json())
+
     audio_answer = 'answer.mp3'
     audio_question = 'question.mp3'
     with open(audio_answer, 'wb') as f:

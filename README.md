@@ -64,16 +64,19 @@ Wait for the simple GUI to load. There are 3 options in the menu:
 - Settings
 - Exit
 
-While the chat is active the **GUI** will be hidden and you should follow the messages printed in the terminal. Wait for the **Recording...** and start speaking. If the app detects a longer silent moment you will see the **Silence detected** and **Recording finished** statements. After processing you will hear response and the GUI will appear again.
-
-You can **Continue chat**, adjust the **Settings** or **Exit**.
+While the chat is active the **GUI** will be hidden and you should follow the messages printed in the terminal. Wait for the **Recording...** and start speaking. If the app detects a longer silent moment you will see the **Silence detected** and **Recording finished** statements. After processing you will hear a response.
 
 ## Settings and context
 
-In the **Settings** menu you can change 3 options:
+In the **Settings** menu you can change 4 options:
 
 - the **LLM** responsible for generating the answers
 - the **voice** used for playing the answers
-- the **duration of silence** in seconds, after which recording will stop
+- the **duration of silence** in seconds, after which current recording will stop
+- ability to enable or disable chat **auto-continue**
+
+If **auto-continue** is disabled you will see the GUI after each response and you can **Continue chat**, adjust the **Settings** or **Exit**.
+If **auto-continue** is enabled you will see a short countdown for the next **Recording...** after each response.
+To end the chat just say goodbye.
 
 A conversation history is in default stored in the _context.txt_ file in the main directory. Context for the language model is created from the affirmative lines of the whole conversation. The algorithm calculates a similarity score for each line and selects the ones, which best apply to the current user input.
