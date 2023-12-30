@@ -13,7 +13,7 @@ def check_env_vars(*args):
 
 def initiate_chat(settings):
    
-    check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID')
+    check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID', 'NLPCLOUD_API')
 
     load_dotenv()
     cloudflare_model = settings["model"][1]
@@ -27,6 +27,8 @@ def initiate_chat(settings):
     "Content-Type": "application/json",
     "xi-api-key": os.getenv('ELEVENLABS_API')
     }
+    NLPCLOUD_ENDPOINT = "https://api.nlpcloud.io/v1/bart-large-mnli-yahoo-answers/classification"
+    NLPCLOUD_HEADERS = {"Authorization": f"Token {os.getenv('NLPCLOUD_API')}"}
     CONTEXT_STORAGE = "context.txt"
     
     record_audio(settings["silence"])
@@ -35,21 +37,16 @@ def initiate_chat(settings):
     write_to_file(CONTEXT_STORAGE, f'User: {user_input}')
     context = TextSimilarity().prepare_context(CONTEXT_STORAGE, user_input)
     cloudflare_json = {
-        "messages": [
-            {"role": "system", "content": f'''
-                I am native English speaker.
-                I always try to reply to the user message and do nothing else.
-                I do not use any introduction and information about myself.
-                After replying I encourage the user to further conversation.
-                I ask my question or refer to the information I have about the user.
-                I MUST answer as concisely as I can, preferably in one sentence.
-                If I do not have personal preferences or feelings
-                I check what is statistically popular and I answer that I pefer or feel that. 
-            ```Context: {context}'''},
-            {"role": "user", "content": f"{user_input}"}
-        ],
-        "max_tokens": 60
-    }
+            "messages": [
+                {"role": "system", "content": f'''
+                 <<SYS>>You chat with the user with one short sentence
+                 and encourage the user to further chat with another short sentence.
+                 Exception: when user wants to end the chat you say goodbye to the user.<</SYS>>
+                 ###
+                 Chat history: {context}'''},
+                {"role": "user", "content": f'[INST]Always answer to this: {user_input}[/INST]'}
+            ],
+        }
 
     cloudflare_response = LanguageModel(
         f'{CLOUDFLARE_ENDPOINT}{cloudflare_model}', CLOUDFLARE_HEADERS, cloudflare_json
@@ -58,24 +55,15 @@ def initiate_chat(settings):
     assistant_answer = cloudflare_response.json()['result']['response']
 
     ending_json =  {
-        "messages": [
-            {"role": "system", "content": '''
-                I am instructed to answer with exactly ONE word.
-                I classify messages into the categories: 1. GOODBYE, 2. OTHER
-                I use GOODBYE only when I am certain that user intends to end the chat.
-                I use OTHER, when I think that ueser intends to continue the chat.
-                If I am not certain I answer OTHER.
-                I must answer with exactly ONE of this words.'''},
-            {"role": "user", "content": f"{user_input}"}
-        ],
-        "max_tokens": 20
-    }
+        "text" : user_input,
+        "labels" : ["goodbye", "other"],
+        "multi_class" : True
+        }
 
     ending_response = LanguageModel(
-        f'{CLOUDFLARE_ENDPOINT}@cf/mistral/mistral-7b-instruct-v0.1', CLOUDFLARE_HEADERS, ending_json
+        NLPCLOUD_ENDPOINT, NLPCLOUD_HEADERS, ending_json
         ).get_response()
-    print(ending_response.json())
-    if "goodbye" in str(ending_response.json()['result']['response']).lower():
+    if ending_response.json()['scores'][0] > ending_response.json()['scores'][1]:
         print('Chat will end soon')
         settings["auto_continue"] = False
 

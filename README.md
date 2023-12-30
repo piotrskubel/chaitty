@@ -31,6 +31,7 @@ pip install -r requirements.txt
 
 - https://www.cloudflare.com/
 - https://elevenlabs.io/
+- https://nlpcloud.com/
 
 5.  Create .env file and enter required information:
 
@@ -38,6 +39,7 @@ pip install -r requirements.txt
 CLOUDFLARE_API={your cloudflare.com API key}
 CLOUDFLARE_ID={your cloudflare.com free account ID number}
 ELEVENLABS_API={your elevenlabs.io API key, which allows you to produce voice of 10 000 characters each month for free}
+NLPCLOUD_API={your nlpcloud.com API key}
 ```
 
 6. Include **ffmpeg** in system Path variable. In case to do so follow the steps:

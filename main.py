@@ -7,7 +7,7 @@ class MyApp(QWidget):
         super().__init__()
 
         self.title = 'ChAItty'
-        self.version = '0.2'
+        self.version = '0.4'
         self.settings_menu = SettingsMenu(self)
         self.settings = self.settings_menu.load_settings()
         self.settings_menu.settings_changed.connect(self.update_settings)
