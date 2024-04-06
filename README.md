@@ -2,7 +2,7 @@
 
 ## Charming AI talks to you!
 
-![enter image description here](https://i.ibb.co/dQn5zHn/conversation.jpg)
+![enter image description here](https://i.ibb.co/RzXNjLx/grafika.jpg)
 
 Learn foreign languages the natural way, by having engaging conversations with AI. Just launch the app, choose your settings and enjoy talking. This **Python** app is designed for non-native English speakers who want to improve their skills.
 
