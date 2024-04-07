@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import heapq
 import time
 
+
 class LanguageModel:
     def __init__(self, endpoint, headers, data):
         self.endpoint = endpoint
@@ -11,15 +12,12 @@ class LanguageModel:
         self.data = data
 
     def get_response(self, json_data=True):
-
         try:
             if json_data:
-                response = requests.post(self.endpoint, timeout=5, headers=self.headers, json=self.data)
+                response = requests.post(self.endpoint, timeout=10, headers=self.headers, json=self.data)
             else:
-                response = requests.post(self.endpoint, timeout=5, headers=self.headers, data=self.data)
-
-            response.raise_for_status()  # Raises a HTTPError if the status is 4xx, 5xx
-
+                response = requests.post(self.endpoint, timeout=10, headers=self.headers, data=self.data)
+            response.raise_for_status()
         except requests.exceptions.Timeout as e:
             print(f"Timeout occurred. {e}")
             raise e
@@ -38,25 +36,21 @@ class TextSimilarity:
     def prepare_context(self, filepath, text):
         """Preparing a context for LLM"""
         with open(filepath, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+            file_lines = f.readlines()
 
-        # Remove duplicate lines
-        lines = list(dict.fromkeys(lines))
+        unique_lines = list(dict.fromkeys(file_lines))
 
-        # Write the unique lines back to the file
         with open(filepath, 'w', encoding='utf-8') as f:
-            f.writelines(lines)
+            f.writelines(unique_lines)
 
-        # If there are less than 4 lines, return all lines
-        if len(lines) < self.elements_in_context:
-            return [line.strip() for line in lines]
+        if len(unique_lines) < self.elements_in_context:
+            return [line.strip() for line in unique_lines]
 
-        tfidf_matrix = self.vectorizer.fit_transform(lines + [text])
+        tfidf_matrix = self.vectorizer.fit_transform(unique_lines + [text])
         similarity_scores = cosine_similarity(tfidf_matrix[-1], tfidf_matrix).flatten()
 
-        # Get the lines with the highest similarity scores
         top_indices = heapq.nlargest(self.elements_in_context, range(len(similarity_scores)-1), similarity_scores.take)
-        top_lines = [lines[i].strip() for i in top_indices]
+        top_lines = [unique_lines[i].strip() for i in top_indices]
 
         return top_lines
 
