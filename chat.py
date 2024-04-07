@@ -15,7 +15,7 @@ def check_env_vars(*args):
 
 def initiate_chat(settings):
    
-    check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID', 'NLPCLOUD_API')
+    check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID')
 
     load_dotenv()
     cloudflare_model = settings["model"][1]
