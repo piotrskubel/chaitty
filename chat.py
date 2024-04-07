@@ -5,18 +5,21 @@ from record import record_audio
 from transcription import get_transcription
 from pygame import mixer, time
 
+
 def check_env_vars(*args):
     """Check if environment variables are set."""
     for var in args:
         if os.getenv(var) is None:
             raise Exception(f"Environment variable {var} is not set")
 
+
 def initiate_chat(settings):
    
-    check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID', 'NLPCLOUD_API')
+    check_env_vars('CLOUDFLARE_API', 'ELEVENLABS_API', 'CLOUDFLARE_ID')
 
     load_dotenv()
     cloudflare_model = settings["model"][1]
+    cloudflare_sentiment = "@cf/huggingface/distilbert-sst-2-int8"
     CLOUDFLARE_ENDPOINT = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('CLOUDFLARE_ID')}/ai/run/"
     CLOUDFLARE_HEADERS = {"Authorization": f"Bearer {os.getenv('CLOUDFLARE_API')}"}
     elevenlabs_voice = settings["voice"][1]
@@ -27,8 +30,6 @@ def initiate_chat(settings):
     "Content-Type": "application/json",
     "xi-api-key": os.getenv('ELEVENLABS_API')
     }
-    NLPCLOUD_ENDPOINT = "https://api.nlpcloud.io/v1/bart-large-mnli-yahoo-answers/classification"
-    NLPCLOUD_HEADERS = {"Authorization": f"Token {os.getenv('NLPCLOUD_API')}"}
     CONTEXT_STORAGE = "context.txt"
     
     record_audio(settings["silence"])
@@ -56,14 +57,13 @@ def initiate_chat(settings):
 
     ending_json =  {
         "text" : user_input,
-        "labels" : ["goodbye", "other"],
-        "multi_class" : True
         }
 
     ending_response = LanguageModel(
-        NLPCLOUD_ENDPOINT, NLPCLOUD_HEADERS, ending_json
+        f'{CLOUDFLARE_ENDPOINT}{cloudflare_sentiment}', CLOUDFLARE_HEADERS, ending_json
         ).get_response()
-    if ending_response.json()['scores'][0] > ending_response.json()['scores'][1]:
+    
+    if ending_response.json()['result'][0]['score'] > ending_response.json()['result'][1]['score']:
         print('Chat will end soon')
         settings["auto_continue"] = False
 
